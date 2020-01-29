@@ -15,13 +15,15 @@ def load_data(name="smallnorb",batch_size=50,split="train"):
 def get_data(dataset,batch_size=50,shape=(128,128),n_channels=1):
 	x,y=shape[0],shape[1]
 	for data in dataset.take(1):
-		img1,img2=data["image"],data["image2"]
+		img1=tf.cast(data["image"],dtype=tf.float32)/255.0
+		img2=tf.cast(data["image2"],dtype=tf.float32)/255.0
 	return img1,img2
 
 def main():	
 	batch_size=50
 	smallnorb_dataset=load_data(name="smallnorb",batch_size=batch_size,split="train")
 	img1,img2=get_data(smallnorb_dataset,batch_size)
+	print(img1)
 
 if __name__=="__main__":
 	main()
