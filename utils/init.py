@@ -6,14 +6,13 @@ import numpy as np
 import tensorflow_datasets as tfds
 
 def load_data(name="smallnorb",batch_size=50,split="train"):
-	snorb_train=tfds.load(name=name,split=split,data_dir="../data/")
+	snorb_train=tfds.load(name=name,split=split,data_dir="data/")
 	snorb_train=snorb_train.repeat().shuffle(1024).batch(batch_size)
 	snorb_train=snorb_train.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
 	return snorb_train
 
-def get_data(dataset,batch_size=50,shape=(128,128),n_channels=1):
-	x,y=shape[0],shape[1]
+def get_data(dataset,batch_size=50):
 	for data in dataset.take(1):
 		img1=tf.cast(data["image"],dtype=tf.float32)/255.0
 		img2=tf.cast(data["image2"],dtype=tf.float32)/255.0
