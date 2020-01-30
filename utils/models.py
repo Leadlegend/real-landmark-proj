@@ -35,12 +35,25 @@ class IMMModel():
 
 		return ni,nn
 
-	def __init__(self,shape,n_features):
-
+	def pose_encoder(self,shape,n_features):
 		pose_ni,pose_nn=self.encoder(shape)
 		pose_nn=Conv2d(n_filter=n_features,filter_size=(1,1),strides=(1,1),act=None)(pose_nn)
-		self.pose_encoder=Model(inputs=pose_ni,outputs=pose_nn,name="pose_encoder")
 
+		def get_coordinate(x,other_axis,axis_size):
+			prob=tf.reduce_mean(x,axis=other_axis)
+			prob=tf.nn.softmax(prob,axis=1)
+			coord_axis=tf.reshape(tf.linspace(0.,1.,axis_size),[1,axis_size,1])
+			coord=tf.reduce_sum(prob*coord_axis,axis=1)
+			return prob,coord
+
+		res_shape=pose_nn.shape
+		x_coord_prob,x_coord=get_coordinate(pose_nn,2,res_shape[1])
+		y_coord_prob,y_coord=get_coordinate(pose_nn,1,res_shape[2])
+
+		
+
+
+	def __init__(self,shape,n_features):
 		image_ni,image_nn=self.encoder(shape)
 		self.image_encoder=Model(inputs=image_ni,outputs=image_nn,name="image_encoder")
 
