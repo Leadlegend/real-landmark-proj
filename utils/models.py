@@ -136,13 +136,15 @@ class IMMModel():
 
 
 	def __init__(self,shape,n_features):
-		image_ni,image_nn=self.encoder(shape)
-		self.image_encoder=Model(inputs=image_ni,outputs=image_nn,name="image_encoder")
+		strategy=tf.distribute.MirroredStrategy()
+		with strategy.scope():
+			image_ni,image_nn=self.encoder(shape)
+			self.image_encoder=Model(inputs=image_ni,outputs=image_nn,name="image_encoder")
 
-		self.pose_encoder=self.get_pose_encoder(shape,n_features)
+			self.pose_encoder=self.get_pose_encoder(shape,n_features)
 
-		decoder_ni,decoder_nn=self.decoder((None,shape[1]//8,shape[2]//8,None))
-		self.image_decoder=Model(inputs=decoder_ni,outputs=decoder_nn,name="image_decoder")
+			decoder_ni,decoder_nn=self.decoder((None,shape[1]//8,shape[2]//8,None))
+			self.image_decoder=Model(inputs=decoder_ni,outputs=decoder_nn,name="image_decoder")
 
 	def train(self,input):
 		img1,img2=input[0],input[1]
