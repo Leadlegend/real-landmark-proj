@@ -5,6 +5,7 @@ from utils.models import IMMModel
 
 batch_size=50
 shape=(batch_size,96,96,1)
+
 def main():
 	dataset=load_data()
 	model=IMMModel(shape)
