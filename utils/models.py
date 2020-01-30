@@ -9,7 +9,7 @@ from tensorlayer.models import Model
 
 class IMMModel():
 
-	def encoder(self,shape,name):
+	def encoder(self,shape):
 		filters=32
 		#block_features=[]
 		ni=Input(shape,name="input")
@@ -33,15 +33,17 @@ class IMMModel():
 		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),name="conv_8",act=tf.nn.relu)(nn)
 		#block_features.append(nn)
 
-		M=Model(inputs=ni,outputs=nn,name=name)
+		return ni,nn
 
-		return M
+	def __init__(self,shape,n_features):
 
-	def __init__(self,shape):
-		self.maxima_extractor=self.encoder(shape,"maxima_extractor")
-		self.original_encoder=self.encoder(shape,"original_encoder")
+		pose_ni,pose_nn=self.encoder(shape)
+		pose_nn=Conv2d(n_filter=n_features,filter_size=(1,1),strides=(1,1),act=None)(pose_nn)
+		self.pose_encoder=Model(inputs=pose_ni,outputs=pose_nn,name="pose_encoder")
+
+		image_ni,image_nn=self.encoder(shape)
+		self.image_encoder=Model(inputs=image_ni,outputs=image_nn,name="image_encoder")
 
 	def train(self,input):
-		self.maxima_extractor.train()
-		output=self.maxima_extractor(input)
+		output=self.pose_encoder(input,is_train=True)
 		return output
