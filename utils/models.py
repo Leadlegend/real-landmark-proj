@@ -4,7 +4,7 @@ import tensorflow as tf
 import tensorlayer as tl
 import numpy as np
 import time
-from tensorlayer.layers import (BatchNorm, Conv2d, Dense, Flatten, Input, LocalResponseNorm, MaxPool2d)
+from tensorlayer.layers import BatchNorm, Conv2d, Conv3d, Dense, Flatten, Input, UpSampling2d
 from tensorlayer.models import Model
 
 class IMMModel():
@@ -13,31 +13,50 @@ class IMMModel():
 		filters=32
 		#block_features=[]
 		ni=Input(shape,name="input")
+		W_init=tl.initializers.truncated_normal(stddev=1e-2)
+		W_init_2=tl.initializers.truncated_normal(stddev=1e-2)
 
-		nn=Conv2d(n_filter=filters,filter_size=(7,7),strides=(1,1),name="conv_1",act=tf.nn.relu)(ni)
-		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),name="conv_2",act=tf.nn.relu)(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(7,7),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init,padding="SAME")(ni)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init_2,padding="SAME")(nn)
 		#block_features.append(nn)
 
 		filters*=2
-		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(2,2),name="conv_3",act=tf.nn.relu)(nn)
-		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),name="conv_4",act=tf.nn.relu)(nn)
+		W_init=tl.initializers.truncated_normal(stddev=1e-2)
+		W_init_2=tl.initializers.truncated_normal(stddev=1e-2)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(2,2),
+			act=tf.nn.relu,W_init=W_init,padding="SAME")(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init_2,padding="SAME")(nn)
 		#block_features.append(nn)
 
 		filters*=2
-		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(2,2),name="conv_5",act=tf.nn.relu)(nn)
-		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),name="conv_6",act=tf.nn.relu)(nn)
+		W_init=tl.initializers.truncated_normal(stddev=1e-2)
+		W_init_2=tl.initializers.truncated_normal(stddev=1e-2)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(2,2),
+			act=tf.nn.relu,W_init=W_init,padding="SAME")(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init_2,padding="SAME")(nn)
 		#block_features.append(nn)
 
 		filters*=2
-		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(2,2),name="conv_7",act=tf.nn.relu)(nn)
-		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),name="conv_8",act=tf.nn.relu)(nn)
+		W_init=tl.initializers.truncated_normal(stddev=1e-2)
+		W_init_2=tl.initializers.truncated_normal(stddev=1e-2)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(2,2),
+			act=tf.nn.relu,W_init=W_init,padding="SAME")(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init_2,padding="SAME")(nn)
 		#block_features.append(nn)
 
 		return ni,nn
 
 	def get_pose_encoder(self,shape,n_features):
 		pose_ni,pose_nn=self.encoder(shape)
-		pose_nn=Conv2d(n_filter=n_features,filter_size=(1,1),strides=(1,1),act=None)(pose_nn)
+		W_init=tl.initializers.truncated_normal(stddev=1e-2)
+
+		pose_nn=Conv2d(n_filter=n_features,filter_size=(1,1),strides=(1,1),
+			act=None,W_init=W_init,padding="SAME")(pose_nn)
 
 		return Model(inputs=pose_ni,outputs=pose_nn,name="pose_encoder")
 
@@ -75,6 +94,46 @@ class IMMModel():
 		heat_maps=get_gaussian_maps(centers,(res_shape[1],res_shape[2]))
 		return heat_maps
 
+	def decoder(self,shape):
+		ni=Input(shape,name="input")
+		filters=256
+		W_init=tl.initializers.truncated_normal(stddev=1e-2)
+		W_init_2=tl.initializers.truncated_normal(stddev=1e-2)
+
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init,padding="SAME")(ni)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init_2,padding="SAME")(nn)
+
+		filters//=2
+		W_init=tl.initializers.truncated_normal(stddev=1e-2)
+		W_init_2=tl.initializers.truncated_normal(stddev=1e-2)
+		nn=UpSampling2d(scale=(2,2),method="bilinear")(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init,padding="SAME")(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init_2,padding="SAME")(nn)
+
+		filters//=2
+		W_init=tl.initializers.truncated_normal(stddev=1e-2)
+		W_init_2=tl.initializers.truncated_normal(stddev=1e-2)
+		nn=UpSampling2d(scale=(2,2),method="bilinear")(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init,padding="SAME")(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init_2,padding="SAME")(nn)
+
+		filters//=2
+		W_init=tl.initializers.truncated_normal(stddev=1e-2)
+		W_init_2=tl.initializers.truncated_normal(stddev=1e-2)
+		nn=UpSampling2d(scale=(2,2),method="bilinear")(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init,padding="SAME")(nn)
+		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(1,1),
+			act=tf.nn.relu,W_init=W_init_2,padding="SAME")(nn)
+
+		return ni,nn
+
 
 	def __init__(self,shape,n_features):
 		image_ni,image_nn=self.encoder(shape)
@@ -82,7 +141,17 @@ class IMMModel():
 
 		self.pose_encoder=self.get_pose_encoder(shape,n_features)
 
+		decoder_ni,decoder_nn=self.decoder((None,shape[1]//8,shape[2]//8,None))
+		self.image_decoder=Model(inputs=decoder_ni,outputs=decoder_nn,name="image_decoder")
+
 	def train(self,input):
-		output=self.pose_encoder(input,is_train=True)
-		output=self.get_heat_maps(output)
-		return output
+		img1,img2=input[0],input[1]
+
+		out1=self.image_encoder(img1,is_train=True)
+
+		out2=self.pose_encoder(img2,is_train=True)
+		out2=self.get_heat_maps(out2)
+
+		combined_input=tf.concat([out1,out2],axis=3)
+		combined_output=self.image_decoder(combined_input,is_train=True)
+		return combined_output
