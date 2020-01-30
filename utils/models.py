@@ -44,14 +44,11 @@ class IMMModel():
 			prob=tf.nn.softmax(prob,axis=1)
 			coord_axis=tf.reshape(tf.linspace(0.,1.,axis_size),[1,axis_size,1])
 			coord=tf.reduce_sum(prob*coord_axis,axis=1)
-			return prob,coord
+			return coord,prob
 
 		res_shape=pose_nn.shape
-		x_coord_prob,x_coord=get_coordinate(pose_nn,2,res_shape[1])
-		y_coord_prob,y_coord=get_coordinate(pose_nn,1,res_shape[2])
-
-		
-
+		x_coord,x_coord_prob=get_coordinate(pose_nn,2,res_shape[1])
+		y_coord,y_coord_prob=get_coordinate(pose_nn,1,res_shape[2])
 
 	def __init__(self,shape,n_features):
 		image_ni,image_nn=self.encoder(shape)
