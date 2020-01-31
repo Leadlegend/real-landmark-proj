@@ -19,6 +19,9 @@ pip install --upgrade -r requirements.txt
 ```
 
 ### Running
-Run main.py
+Run main.py by
+```
+python main.py
+```
 
 ## To be finished
