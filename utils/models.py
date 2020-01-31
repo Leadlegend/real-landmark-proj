@@ -9,7 +9,7 @@ from tensorlayer.models import Model
 
 class IMMModel():
 
-	def encoder(self,shape):
+	def encoder(self,shape,n_features):
 		filters=32
 		#block_features=[]
 		ni=Input(shape,name="input")
@@ -41,6 +41,7 @@ class IMMModel():
 		#block_features.append(nn)
 
 		filters*=2
+		filters-=n_features
 		W_init=tl.initializers.truncated_normal(stddev=1e-2)
 		W_init_2=tl.initializers.truncated_normal(stddev=1e-2)
 		nn=Conv2d(n_filter=filters,filter_size=(3,3),strides=(2,2),
@@ -52,7 +53,7 @@ class IMMModel():
 		return ni,nn
 
 	def get_pose_encoder(self,shape,n_features):
-		pose_ni,pose_nn=self.encoder(shape)
+		pose_ni,pose_nn=self.encoder(shape,n_features)
 		W_init=tl.initializers.truncated_normal(stddev=1e-2)
 
 		pose_nn=Conv2d(n_filter=n_features,filter_size=(1,1),strides=(1,1),
@@ -138,7 +139,7 @@ class IMMModel():
 	def __init__(self,shape,n_features):
 		strategy=tf.distribute.MirroredStrategy()
 		with strategy.scope():
-			image_ni,image_nn=self.encoder(shape)
+			image_ni,image_nn=self.encoder(shape,n_features)
 			self.image_encoder=Model(inputs=image_ni,outputs=image_nn,name="image_encoder")
 
 			self.pose_encoder=self.get_pose_encoder(shape,n_features)
