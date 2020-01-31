@@ -5,14 +5,18 @@ This is a simplified implementation of "Unsupervised Learning of Object Landmark
 ## Getting started
 
 ### Requirements
-Linux
-Python 3.6
+* Linux
+* Python 3.6
 
 ### Installation
-Update pip and install Python dependecies by
-
+Update pip
+```
 pip install --upgrade pip
+```
+Install Python dependecies by
+```
 pip install --upgrade -r requirements.txt
+```
 
 ### Running
 Run main.py
