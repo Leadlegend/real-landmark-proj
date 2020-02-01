@@ -6,9 +6,8 @@ This is a simplified implementation of "Unsupervised Learning of Object Landmark
 
 ### Requirements
 * Linux
-* Python 3.6
-* Tensorflow 2
-* Tensorlayer 2
+* Python 3.7
+* Tensorflow 2.0.0
 
 ### Installation
 Update pip
